@@ -1,0 +1,13 @@
+[Unit]
+Description=RSS Market Digest - Fetch news and send email summary
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/User/Documents/GitHub/Custom-RSS-Email-Feed/main
+ExecStart=/home/User/Documents/GitHub/Custom-RSS-Email-Feed/main/target/release/rss-market-digest /home/User/Documents/GitHub/Custom-RSS-Email-Feed/main/config.toml
+Environment=TZ=Australia/Sydney
+
+[Install]
+WantedBy=multi-user.target

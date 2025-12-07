@@ -1,0 +1,53 @@
+# RSS Market Digest Configuration
+# Copy this to config.toml and fill in your API keys
+
+gemini_api_key = "your-gemini-api-key-here"
+resend_api_key = "your-resend-api-key-here"
+from_email = "digest@yourdomain.com"
+to_email = "your-email@example.com"
+
+# Optional: specify Gemini model (default: gemini-3)
+# gemini_model = "gemini-3-flash"
+
+# Financial News Feeds
+[[feeds]]
+name = "Reuters Business"
+url = "https://www.reutersagency.com/feed/?best-topics=business-finance&post_type=best"
+
+[[feeds]]
+name = "Bloomberg Markets"
+url = "https://feeds.bloomberg.com/markets/news.rss"
+
+[[feeds]]
+name = "WSJ Markets"
+url = "https://feeds.wsj.com/xml/rss/3_7031.xml"
+
+[[feeds]]
+name = "CNBC Top News"
+url = "https://www.cnbc.com/id/100003114/device/rss/rss.html"
+
+[[feeds]]
+name = "Financial Times"
+url = "https://www.ft.com/rss/home"
+
+# Tech + Finance Feeds
+[[feeds]]
+name = "TechCrunch"
+url = "https://techcrunch.com/feed/"
+
+[[feeds]]
+name = "Hacker News"
+url = "https://news.ycombinator.com/rss"
+
+[[feeds]]
+name = "The Verge"
+url = "https://www.theverge.com/rss/index.xml"
+
+# Crypto Feeds
+[[feeds]]
+name = "CoinDesk"
+url = "https://www.coindesk.com/arc/outboundfeeds/rss/"
+
+[[feeds]]
+name = "Cointelegraph"
+url = "https://cointelegraph.com/rss"

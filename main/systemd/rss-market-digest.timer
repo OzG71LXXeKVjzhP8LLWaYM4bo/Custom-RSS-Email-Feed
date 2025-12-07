@@ -1,0 +1,14 @@
+[Unit]
+Description=Run RSS Market Digest at 7am, 1pm, and 11pm Sydney time
+
+[Timer]
+# 7:00 AM Sydney time
+OnCalendar=*-*-* 07:00:00 Australia/Sydney
+# 1:00 PM Sydney time
+OnCalendar=*-*-* 13:00:00 Australia/Sydney
+# 11:00 PM Sydney time
+OnCalendar=*-*-* 23:00:00 Australia/Sydney
+Persistent=true
+
+[Install]
+WantedBy=timers.target
