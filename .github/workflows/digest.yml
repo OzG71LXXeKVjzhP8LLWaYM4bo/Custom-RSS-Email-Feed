@@ -1,0 +1,86 @@
+name: RSS Market Digest
+
+on:
+  schedule:
+    # 7:00 AM Sydney (AEST = UTC+10, AEDT = UTC+11)
+    # Using UTC-based times — adjust if daylight saving shifts
+    - cron: '0 21 * * *'   # 7am AEST = 9pm UTC (previous day)
+    - cron: '0 3 * * *'    # 1pm AEST = 3am UTC
+    - cron: '0 13 * * *'   # 11pm AEST = 1pm UTC
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+jobs:
+  send-digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            main/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('main/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Create config
+        working-directory: main
+        run: |
+          cat > config.toml << 'TOML'
+          gemini_api_key = "${{ secrets.GEMINI_API_KEY }}"
+          resend_api_key = "${{ secrets.RESEND_API_KEY }}"
+          from_email = "${{ secrets.FROM_EMAIL }}"
+          to_email = "${{ secrets.TO_EMAIL }}"
+
+          [[feeds]]
+          name = "Reuters Business"
+          url = "https://www.reutersagency.com/feed/?best-topics=business-finance&post_type=best"
+
+          [[feeds]]
+          name = "Bloomberg Markets"
+          url = "https://feeds.bloomberg.com/markets/news.rss"
+
+          [[feeds]]
+          name = "WSJ Markets"
+          url = "https://feeds.wsj.com/xml/rss/3_7031.xml"
+
+          [[feeds]]
+          name = "CNBC Top News"
+          url = "https://www.cnbc.com/id/100003114/device/rss/rss.html"
+
+          [[feeds]]
+          name = "Financial Times"
+          url = "https://www.ft.com/rss/home"
+
+          [[feeds]]
+          name = "TechCrunch"
+          url = "https://techcrunch.com/feed/"
+
+          [[feeds]]
+          name = "Hacker News"
+          url = "https://news.ycombinator.com/rss"
+
+          [[feeds]]
+          name = "The Verge"
+          url = "https://www.theverge.com/rss/index.xml"
+
+          [[feeds]]
+          name = "CoinDesk"
+          url = "https://www.coindesk.com/arc/outboundfeeds/rss/"
+
+          [[feeds]]
+          name = "Cointelegraph"
+          url = "https://cointelegraph.com/rss"
+          TOML
+
+      - name: Build and run
+        working-directory: main
+        run: |
+          cargo build --release
+          ./target/release/rss-market-digest config.toml
