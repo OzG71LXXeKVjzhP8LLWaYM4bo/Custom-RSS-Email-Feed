@@ -2,6 +2,8 @@ use anyhow::Result;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
+use crate::rss::Article;
+
 #[derive(Serialize)]
 struct ResendEmail {
     from: String,
@@ -30,8 +32,9 @@ impl ResendClient {
         }
     }
 
-    pub async fn send_digest(&self, to: &str, subject: &str, content: &str) -> Result<String> {
-        let html = self.markdown_to_html(content);
+    pub async fn send_digest(&self, to: &str, subject: &str, content: &str, articles: &[Article]) -> Result<String> {
+        let mut html = self.markdown_to_html(content);
+        html = self.append_sources(html, articles);
 
         let email = ResendEmail {
             from: self.from_email.clone(),
@@ -93,6 +96,10 @@ impl ResendClient {
         h3 {{ color: #555; }}
         li {{ margin: 8px 0; }}
         p {{ color: #444; }}
+        .sources {{ margin-top: 32px; border-top: 1px solid #ddd; padding-top: 16px; }}
+        .sources a {{ color: #0066cc; text-decoration: none; }}
+        .sources a:hover {{ text-decoration: underline; }}
+        .source-tag {{ color: #888; font-size: 0.85em; }}
     </style>
 </head>
 <body>
@@ -101,5 +108,26 @@ impl ResendClient {
 </html>"#,
             html
         )
+    }
+
+    fn append_sources(&self, html: String, articles: &[Article]) -> String {
+        let links: Vec<String> = articles
+            .iter()
+            .take(20)
+            .filter(|a| !a.link.is_empty())
+            .map(|a| {
+                format!(
+                    "<li><a href=\"{}\">{}</a> <span class=\"source-tag\">[{}]</span></li>",
+                    a.link, a.title, a.source
+                )
+            })
+            .collect();
+
+        let sources_section = format!(
+            "<div class=\"sources\"><h2>Sources</h2><ul>{}</ul></div>",
+            links.join("\n")
+        );
+
+        html.replace("</body>", &format!("{}\n</body>", sources_section))
     }
 }

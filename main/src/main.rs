@@ -50,7 +50,7 @@ async fn main() -> Result<()> {
     let subject = format!("Market Digest - {}", date);
 
     let email_id = resend
-        .send_digest(&config.to_email, &subject, &analysis)
+        .send_digest(&config.to_email, &subject, &analysis, &articles)
         .await?;
 
     println!("Email sent successfully! ID: {}", email_id);
