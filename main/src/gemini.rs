@@ -21,7 +21,15 @@ struct Part {
 
 #[derive(Deserialize)]
 struct GeminiResponse {
-    candidates: Vec<Candidate>,
+    candidates: Option<Vec<Candidate>>,
+    error: Option<GeminiError>,
+}
+
+#[derive(Deserialize)]
+struct GeminiError {
+    message: String,
+    #[serde(default)]
+    code: i32,
 }
 
 #[derive(Deserialize)]
@@ -115,18 +123,30 @@ Provide a concise, well-structured analysis suitable for a morning market briefi
             }],
         };
 
-        let response = self
+        let raw = self
             .client
             .post(&url)
             .json(&request)
             .send()
             .await?
-            .json::<GeminiResponse>()
+            .text()
             .await?;
+
+        let response: GeminiResponse = serde_json::from_str(&raw)
+            .map_err(|e| anyhow::anyhow!("Failed to parse Gemini response: {e}\nBody: {raw}"))?;
+
+        if let Some(err) = response.error {
+            return Err(anyhow::anyhow!(
+                "Gemini API error {}: {}",
+                err.code,
+                err.message
+            ));
+        }
 
         let text = response
             .candidates
-            .first()
+            .as_deref()
+            .and_then(|c| c.first())
             .and_then(|c| c.content.parts.first())
             .map(|p| p.text.clone())
             .unwrap_or_else(|| "No response generated.".to_string());
