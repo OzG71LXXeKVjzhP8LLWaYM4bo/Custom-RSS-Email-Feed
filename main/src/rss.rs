@@ -1,5 +1,5 @@
 use anyhow::Result;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use feed_rs::parser;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
@@ -62,8 +62,23 @@ impl RssFetcher {
             }
         }
 
+        // Keep only articles from the last 24 hours; fall back to all if none qualify
+        let cutoff = Utc::now() - Duration::hours(24);
+        let fresh: Vec<Article> = all_articles
+            .iter()
+            .filter(|a| a.published.map(|d| d > cutoff).unwrap_or(false))
+            .cloned()
+            .collect();
+
+        let mut result = if fresh.is_empty() {
+            eprintln!("Warning: no articles within 24 hours, using all fetched articles");
+            all_articles
+        } else {
+            fresh
+        };
+
         // Sort by published date, most recent first
-        all_articles.sort_by(|a, b| b.published.cmp(&a.published));
-        all_articles
+        result.sort_by(|a, b| b.published.cmp(&a.published));
+        result
     }
 }
